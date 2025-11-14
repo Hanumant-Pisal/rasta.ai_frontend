@@ -108,18 +108,17 @@ export default function Projects() {
 
   return (
     <div className="max-w-7xl mx-auto">
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
             {isOwner ? 'Projects' : 'Assigned Projects'}
           </h1>
-         
         </div>
         
         {isOwner && (
           <button
             onClick={() => setIsCreateModalOpen(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 text-sm sm:text-base"
           >
             Create Project
           </button>
@@ -147,8 +146,8 @@ export default function Projects() {
           )}
         </div>
       ) : (
-        <div className="space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="space-y-6 sm:space-y-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {list.map((project) => (
               <ProjectCard 
                 key={project._id} 
@@ -162,12 +161,12 @@ export default function Projects() {
           
           
           {pagination.pages > 1 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between mt-8 space-y-4 sm:space-y-0">
-              <div className="text-sm text-gray-600">
+            <div className="flex flex-col sm:flex-row items-center justify-between mt-6 sm:mt-8 space-y-4 sm:space-y-0 bg-white p-4 rounded-lg border border-gray-200">
+              <div className="text-xs sm:text-sm text-gray-600">
                 Showing page {currentPage} of {pagination.pages}
               </div>
               
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1 sm:space-x-2">
                 <button
                   onClick={() => handlePageChange(1)}
                   disabled={currentPage === 1}

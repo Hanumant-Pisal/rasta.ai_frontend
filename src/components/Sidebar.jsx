@@ -7,7 +7,8 @@ import {
   Users, 
   Settings, 
   BarChart2,
-  ChevronRight
+  ChevronRight,
+  X
 } from 'lucide-react';
 
 const menuItems = [
@@ -17,17 +18,38 @@ const menuItems = [
   { name: 'Settings', icon: Settings, path: '/settings' },
 ];
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, onClose }) => {
   const location = useLocation();
   const { user } = useSelector((state) => state.auth);
   
   return (
-    <div className="w-66 bg-gradient-to-br from-blue-600 to-indigo-800 h-screen fixed left-0 top-0 pt-16 shadow-sm z-30">
-      <div className="p-4">
-        
-        
-        <nav className="space-y-1">
-          {menuItems.map((item) => {
+    <>
+      {/* Mobile Overlay */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={onClose}
+        />
+      )}
+      
+      {/* Sidebar */}
+      <div className={`
+        w-64 bg-gradient-to-br from-blue-600 to-indigo-800 h-screen fixed left-0 top-0 pt-16 shadow-lg z-50
+        transition-transform duration-300 ease-in-out
+        lg:translate-x-0
+        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
+        {/* Close button for mobile */}
+        <button
+          onClick={onClose}
+          className="lg:hidden absolute top-20 right-4 text-white hover:bg-white/10 p-2 rounded-lg"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        <div className="p-4">
+          <nav className="space-y-1">
+            {menuItems.map((item) => {
           
             if (item.requiresOwner && user?.role !== 'owner') {
               return null;
@@ -40,9 +62,10 @@ const Sidebar = () => {
               <Link
                 key={item.name}
                 to={item.path}
+                onClick={onClose}
                 className={`
-                  flex items-center justify-between px-4 py-4 rounded-lg transition-colors
-                  text-base font-medium
+                  flex items-center justify-between px-4 py-3 sm:py-4 rounded-lg transition-colors
+                  text-sm sm:text-base font-medium
                   ${isActive 
                     ? 'bg-white/10 text-white' 
                     : 'text-blue-100 hover:bg-white/5 hover:text-white'
@@ -58,9 +81,10 @@ const Sidebar = () => {
               </Link>
             );
           })}
-        </nav>
+          </nav>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
