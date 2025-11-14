@@ -39,20 +39,68 @@ export const updateTaskStatus = createAsyncThunk("tasks/updateStatus", async ({ 
   return res.data;
 });
 
+export const updateTaskOrder = createAsyncThunk(
+  "tasks/updateOrder",
+  async ({ tasks, token }, { rejectWithValue }) => {
+    try {
+      const res = await axios.put(
+        `${API}/update-order`,
+        { tasks },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+      return res.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to update task order');
+    }
+  }
+);
+
+export const updateTask = createAsyncThunk(
+  "tasks/update",
+  async ({ taskId, taskData, token }, { rejectWithValue }) => {
+    try {
+      const res = await axios.put(
+        `${API}/${taskId}`,
+        taskData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+      return res.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to update task');
+    }
+  }
+);
+
+export const deleteTask = createAsyncThunk(
+  "tasks/delete",
+  async ({ taskId, token }, { rejectWithValue }) => {
+    try {
+      await axios.delete(`${API}/${taskId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      return taskId;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to delete task');
+    }
+  }
+);
+
 export const createTask = createAsyncThunk(
   "tasks/create",
   async ({ projectId, title, description, assignee, dueDate, status = 'pending', token }, { rejectWithValue }) => {
     try {
-      
-      console.log('Raw input:', { 
-        projectId, 
-        title, 
-        description, 
-        assignee,
-        dueDate,
-        status,
-        token: token ? '***' : 'MISSING TOKEN'
-      });
 
       
       const assigneeId = assignee && assignee !== 'Unassigned' ? assignee : null;
@@ -61,8 +109,6 @@ export const createTask = createAsyncThunk(
       const backendStatus = ['To Do', 'In Progress', 'Done'].includes(status) 
         ? status 
         : 'To Do';
-      
-      console.log('Using status:', { original: status, using: backendStatus });
       
       const taskData = {
         projectId, 
@@ -73,8 +119,6 @@ export const createTask = createAsyncThunk(
         status: backendStatus,
         token
       };
-
-      console.log('Sending task data:', { ...taskData, token: '***' });
 
       const res = await axios.post(
         `${API}/`,
@@ -87,12 +131,6 @@ export const createTask = createAsyncThunk(
           validateStatus: (status) => status < 500 
         }
       );
-      
-      console.log('Response:', {
-        status: res.status,
-        data: res.data,
-        headers: res.headers
-      });
       
       if (!res.data) {
         return rejectWithValue({
@@ -116,11 +154,6 @@ export const createTask = createAsyncThunk(
       
       return res.data;
     } catch (error) {
-      console.error('Error creating task:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status
-      });
       return rejectWithValue(error.response?.data?.message || 'Failed to create task');
     }
   }
@@ -189,6 +222,56 @@ const taskSlice = createSlice({
         state.error = action.payload || 'Failed to create task';
       })
       
+      // Update Task Order
+      .addCase(updateTaskOrder.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateTaskOrder.fulfilled, (state, action) => {
+        state.loading = false;
+        if (action.payload?.tasks) {
+          // Update tasks in state with new order and status
+          action.payload.tasks.forEach(updatedTask => {
+            const idx = state.list.findIndex(t => t._id === updatedTask._id);
+            if (idx !== -1) {
+              state.list[idx] = { ...state.list[idx], ...updatedTask };
+            }
+          });
+        }
+      })
+      .addCase(updateTaskOrder.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Failed to update task order';
+      })
+      
+      // Update Task
+      .addCase(updateTask.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateTask.fulfilled, (state, action) => {
+        state.loading = false;
+        const index = state.list.findIndex(t => t._id === action.payload.task?._id);
+        if (index !== -1) {
+          state.list[index] = action.payload.task;
+        }
+      })
+      .addCase(updateTask.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Failed to update task';
+      })
+      
+      // Delete Task
+      .addCase(deleteTask.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(deleteTask.fulfilled, (state, action) => {
+        state.loading = false;
+        state.list = state.list.filter(t => t._id !== action.payload);
+      })
+      .addCase(deleteTask.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Failed to delete task';
+      })
+      
       .addCase(fetchAllTasks.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -210,7 +293,7 @@ export const fetchAllTasks = createAsyncThunk(
   "tasks/fetchAll",
   async (token, { rejectWithValue }) => {
     try {
-      const res = await axios.get(`${API}/`, {
+      const res = await axios.get(`${API}/all`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const tasks = Array.isArray(res.data) ? res.data : (res.data?.data || []);

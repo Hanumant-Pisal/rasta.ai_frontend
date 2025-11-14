@@ -33,7 +33,6 @@ export const createProject = createAsyncThunk(
   "projects/create", 
   async ({ data, token }, { rejectWithValue, dispatch }) => {
     try {
-  
       const members = Array.isArray(data.members) ? [...new Set([...data.members])] : [];
       
       const projectData = {
@@ -58,7 +57,6 @@ export const createProject = createAsyncThunk(
       
       return res.data;
     } catch (error) {
-      console.error('Error creating project:', error);
       return rejectWithValue(error.response?.data?.message || 'Failed to create project');
     }
   }
@@ -85,7 +83,6 @@ export const updateProject = createAsyncThunk(
       
       return res.data; 
     } catch (error) {
-      console.error('Error updating project:', error);
       return rejectWithValue(error.response?.data?.message || 'Failed to update project');
     }
   }
@@ -96,7 +93,6 @@ export const deleteProject = createAsyncThunk(
   'projects/delete',
   async ({ projectId, token }, { rejectWithValue, dispatch }) => {
     try {
-      console.log('Deleting project with ID:', projectId);
       const response = await axios.delete(
         `${API}/api/projects/delete-project/${projectId}`,
         {
@@ -108,8 +104,6 @@ export const deleteProject = createAsyncThunk(
         }
       );
 
-      console.log('Delete project response:', response.data);
-
       if (!response.data.success) {
         throw new Error(response.data.message || 'Failed to delete project');
       }
@@ -119,11 +113,6 @@ export const deleteProject = createAsyncThunk(
       
       return { projectId };
     } catch (error) {
-      console.error('Error in deleteProject thunk:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status
-      });
       return rejectWithValue(error.response?.data?.message || error.message || 'Failed to delete project');
     }
   }
@@ -146,7 +135,6 @@ export const addMember = createAsyncThunk(
       );
       return res.data; 
     } catch (error) {
-      console.error('Error adding member:', error);
       return rejectWithValue(error.response?.data?.message || 'Failed to add member');
     }
   }
@@ -168,7 +156,6 @@ export const fetchProjectMembers = createAsyncThunk(
       );
       return { projectId, members: res.data };
     } catch (error) {
-      console.error('Error fetching project members:', error);
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch project members');
     }
   }

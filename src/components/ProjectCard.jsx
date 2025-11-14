@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from 'date-fns';
 import { useDispatch, useSelector } from "react-redux";
 import { addMember } from "../redux/projectSlice";
+import { fetchAllMembers } from "../redux/teamSlice";
 import TaskModal from "./TaskModal";
 import { UserPlus, X, MoreVertical, Edit, Trash2 } from "lucide-react";
 
@@ -10,14 +11,21 @@ export default function ProjectCard({ project, isOwner, onEdit, onDelete }) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { token } = useSelector((state) => state.auth);
+  const { members: availableMembers, loading: membersLoading } = useSelector((state) => state.team);
   const [showActions, setShowActions] = useState(false);
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [showAddMember, setShowAddMember] = useState(false);
-  const [email, setEmail] = useState("");
+  const [selectedMember, setSelectedMember] = useState("");
   const [isAdding, setIsAdding] = useState(false);
   const [error, setError] = useState(null);
   const memberCount = project.members?.length || 0;
-  const taskCount = project.tasks?.length || 0;
+  const taskCount = project.taskCount || 0;
+
+  useEffect(() => {
+    if (showAddMember) {
+      dispatch(fetchAllMembers());
+    }
+  }, [showAddMember, dispatch]);
 
   const handleCardClick = (e) => {
     // Only navigate if the click is not on the action buttons or member controls
@@ -38,7 +46,10 @@ export default function ProjectCard({ project, isOwner, onEdit, onDelete }) {
 
   const handleAddMember = async (e) => {
     e.stopPropagation();
-    if (!email.trim()) return;
+    if (!selectedMember) return;
+    
+    const memberToAdd = availableMembers.find(m => m._id === selectedMember);
+    if (!memberToAdd) return;
     
     setIsAdding(true);
     setError(null);
@@ -46,11 +57,11 @@ export default function ProjectCard({ project, isOwner, onEdit, onDelete }) {
     try {
       await dispatch(addMember({
         projectId: project._id,
-        memberEmail: email.trim(),
+        memberEmail: memberToAdd.email,
         token
       })).unwrap();
       
-      setEmail("");
+      setSelectedMember("");
       setShowAddMember(false);
     } catch (err) {
       setError(err.message || "Failed to add member");
@@ -109,18 +120,32 @@ export default function ProjectCard({ project, isOwner, onEdit, onDelete }) {
                 </div>
                 
                 <div className="space-y-2">
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                  <select
+                    value={selectedMember}
+                    onChange={(e) => setSelectedMember(e.target.value)}
                     className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Enter email address"
                     onClick={(e) => e.stopPropagation()}
-                  />
+                    disabled={membersLoading}
+                  >
+                    <option value="">Select a member...</option>
+                    {availableMembers
+                      .filter(member => !project.members?.some(m => 
+                        (typeof m === 'object' ? m.email : m) === member.email
+                      ))
+                      .map((member) => (
+                        <option key={member._id} value={member._id}>
+                          {member.name} ({member.email})
+                        </option>
+                      ))}
+                  </select>
+                  
+                  {membersLoading && (
+                    <p className="text-xs text-gray-500">Loading members...</p>
+                  )}
                   
                   <button
                     onClick={handleAddMember}
-                    disabled={isAdding || !email.trim()}
+                    disabled={isAdding || !selectedMember || membersLoading}
                     className="w-full flex items-center justify-center px-3 py-1.5 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isAdding ? 'Adding...' : (
