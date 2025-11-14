@@ -7,6 +7,7 @@ import CreateProjectModal from '../components/CreateProjectModal';
 import EditProjectModal from '../components/EditProjectModal';
 import Loader from '../components/Loader';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { toast } from 'react-toastify';
 
 export default function Projects() {
   const { token, user } = useSelector((state) => state.auth);
@@ -47,13 +48,12 @@ export default function Projects() {
         token 
       })).unwrap();
       
-      
       await dispatch(fetchProjects({ token, page: currentPage }));
       
-      
+      toast.success('Project created successfully');
       setIsCreateModalOpen(false);
     } catch (error) {
-      console.error('Failed to create project:', error);
+      toast.error(error || 'Failed to create project');
     }
   };
 
@@ -66,10 +66,11 @@ export default function Projects() {
         data: projectData,
         token
       })).unwrap();
+      toast.success('Project updated successfully');
       setIsEditModalOpen(false);
       setSelectedProject(null);
     } catch (error) {
-      console.error('Failed to update project:', error);
+      toast.error(error || 'Failed to update project');
     }
   };
 
@@ -92,11 +93,11 @@ export default function Projects() {
         token
       })).unwrap();
       
-   
+      toast.success('Project deleted successfully');
       setIsDeleteModalOpen(false);
       setProjectToDelete(null);
     } catch (error) {
-      console.error('Failed to delete project:', error);
+      toast.error(error || 'Failed to delete project');
     }
   };
 
@@ -252,7 +253,7 @@ export default function Projects() {
 
       
       {isDeleteModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg w-full max-w-md">
             <div className="p-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Delete Project</h3>

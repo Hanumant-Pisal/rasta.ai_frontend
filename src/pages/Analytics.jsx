@@ -12,13 +12,14 @@ import {
   LinearScale,
   PointElement,
   LineElement,
+  BarElement,
   Title,
   Tooltip,
   Legend,
   Filler,
   ArcElement
 } from 'chart.js';
-import { Line, Pie } from 'react-chartjs-2';
+import { Bar, Pie, Doughnut } from 'react-chartjs-2';
 
 
 const StatsCard = ({ title, value, icon: Icon, trend, trendText, className = '' }) => (
@@ -56,6 +57,7 @@ ChartJS.register(
   LinearScale,
   PointElement,
   LineElement,
+  BarElement,
   Title,
   Tooltip,
   Legend,
@@ -82,6 +84,16 @@ const Analytics = () => {
     inProgressTasks: tasks.filter(task => task.status === 'In Progress').length,
     totalMembers: members.length
   }), [projects, tasks, members]);
+
+  
+  const projectTaskCounts = React.useMemo(() => {
+    const counts = {};
+    tasks.forEach(task => {
+      const projectName = projects.find(p => p._id === task.projectId)?.name || 'Unknown';
+      counts[projectName] = (counts[projectName] || 0) + 1;
+    });
+    return counts;
+  }, [tasks, projects]);
 
   
   useEffect(() => {
@@ -113,8 +125,8 @@ const Analytics = () => {
         await Promise.all([
           dispatch(fetchProjects({ token })),
           dispatch(fetchAllTasks(token)),
-          dispatch(fetchAllMembers())
-        ]); 
+          user?.role === 'owner' && dispatch(fetchAllMembers())
+        ].filter(Boolean)); 
         
       } catch (error) {
         setError(error.message || 'Failed to load analytics data. Please try again.');
@@ -131,7 +143,7 @@ const Analytics = () => {
     return () => {
       isMounted = false;
     };
-  }, [dispatch]);
+  }, [dispatch, token, user?.role]);
   
  
   if (isLoading || projectsLoading || tasksLoading || membersLoading) {
@@ -167,51 +179,143 @@ const Analytics = () => {
   }
 
   
-  const chartData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+  
+  const taskStatusData = {
+    labels: ['To Do', 'In Progress', 'Done'],
     datasets: [
       {
-        label: 'Tasks Completed',
-        data: [12, 19, 3, 5, 2, 3, 15],
-        borderColor: 'rgb(59, 130, 246)',
-        backgroundColor: 'rgba(59, 130, 246, 0.2)',
-        fill: true,
-        tension: 0.4,
-      },
-      {
-        label: 'Tasks In Progress',
-        data: [5, 12, 8, 10, 6, 8, 10],
-        borderColor: 'rgb(16, 185, 129)',
-        backgroundColor: 'rgba(16, 185, 129, 0.2)',
-        fill: true,
-        tension: 0.4,
+        data: [
+          tasks.filter(t => t.status === 'To Do').length,
+          tasks.filter(t => t.status === 'In Progress').length,
+          tasks.filter(t => t.status === 'Done').length
+        ],
+        backgroundColor: [
+          'rgba(156, 163, 175, 0.8)', 
+          'rgba(59, 130, 246, 0.8)',  
+          'rgba(34, 197, 94, 0.8)'    
+        ],
+        borderColor: [
+          'rgba(156, 163, 175, 1)',
+          'rgba(59, 130, 246, 1)',
+          'rgba(34, 197, 94, 1)'
+        ],
+        borderWidth: 2,
       },
     ],
   };
 
-  const chartOptions = {
+  const taskStatusOptions = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: 'top',
+        position: 'bottom',
+        labels: {
+          padding: 15,
+          font: {
+            size: 12
+          }
+        }
       },
       title: {
         display: true,
-        text: 'Task Completion Trend',
+        text: 'Task Status Distribution',
         font: {
           size: 16,
+          weight: 'bold'
+        },
+        padding: {
+          bottom: 20
         }
       },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            const label = context.label || '';
+            const value = context.raw || 0;
+            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+            const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+            return `${label}: ${value} tasks (${percentage}%)`;
+          }
+        }
+      }
+    },
+  };
+
+  const projectTaskData = {
+    labels: Object.keys(projectTaskCounts).slice(0, 6), 
+    datasets: [
+      {
+        label: 'Tasks per Project',
+        data: Object.values(projectTaskCounts).slice(0, 6),
+        backgroundColor: [
+          'rgba(59, 130, 246, 0.8)',
+          'rgba(16, 185, 129, 0.8)',
+          'rgba(245, 158, 11, 0.8)',
+          'rgba(239, 68, 68, 0.8)',
+          'rgba(139, 92, 246, 0.8)',
+          'rgba(236, 72, 153, 0.8)'
+        ],
+        borderColor: [
+          'rgba(59, 130, 246, 1)',
+          'rgba(16, 185, 129, 1)',
+          'rgba(245, 158, 11, 1)',
+          'rgba(239, 68, 68, 1)',
+          'rgba(139, 92, 246, 1)',
+          'rgba(236, 72, 153, 1)'
+        ],
+        borderWidth: 2,
+        borderRadius: 8,
+      },
+    ],
+  };
+
+  const projectTaskOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false,
+      },
+      title: {
+        display: true,
+        text: 'Tasks by Project',
+        font: {
+          size: 16,
+          weight: 'bold'
+        },
+        padding: {
+          bottom: 20
+        }
+      },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            return `${context.parsed.y} tasks`;
+          }
+        }
+      }
     },
     scales: {
       y: {
         beginAtZero: true,
+        ticks: {
+          stepSize: 1,
+          font: {
+            size: 11
+          }
+        },
         grid: {
           display: true,
           drawBorder: false,
         },
       },
       x: {
+        ticks: {
+          font: {
+            size: 11
+          }
+        },
         grid: {
           display: false,
         },
@@ -268,7 +372,7 @@ const Analytics = () => {
   };
 
   return (
-    <div className="p-6">
+    <div className="max-w-full overflow-x-hidden">
       <h1 className="text-2xl font-bold text-gray-800 mb-6">Analytics Dashboard</h1>
       
       {error && (
@@ -324,16 +428,26 @@ const Analytics = () => {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 max-w-full">
+       
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
           <div className="h-80 flex items-center justify-center">
-            <Pie data={pieChartData} options={pieOptions} />
+            <Doughnut data={taskStatusData} options={taskStatusOptions} />
           </div>
         </div>
         
+        
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
           <div className="h-80">
-            <Line data={chartData} options={chartOptions} />
+            <Bar data={projectTaskData} options={projectTaskOptions} />
+          </div>
+        </div>
+
+       
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+          <div className="h-80 flex items-center justify-center">
+            <Pie data={pieChartData} options={pieOptions} />
           </div>
         </div>
       </div>

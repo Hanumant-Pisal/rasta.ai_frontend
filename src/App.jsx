@@ -4,7 +4,6 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Projects from "./pages/Projects";
 import ProjectPage from "./pages/ProjectPage";
-import Tasks from "./pages/Tasks";
 import Analytics from "./pages/Analytics";
 import Team from "./pages/Team";
 import DashboardLayout from "./components/DashboardLayout";
@@ -41,7 +40,6 @@ export default function App() {
           <Route path="/team" element={<Team />} />
           <Route path="/settings" element={<div className="p-6">Settings Page</div>} />
           <Route path="/project/:id" element={<ProjectPage />} />
-          <Route path="/project/:projectId/tasks" element={<Tasks />} />
         </Route>
         
       

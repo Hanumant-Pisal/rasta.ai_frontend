@@ -1,17 +1,14 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { createTask } from '../redux/taskSlice';
-import { fetchProjectMembers, setCurrentProject } from '../redux/projectSlice';
+import { updateTask } from '../redux/taskSlice';
+import { fetchProjectMembers } from '../redux/projectSlice';
 import { toast } from 'react-toastify';
+import { X } from 'lucide-react';
 
-
-const selectProjects = (state) => state.projects;
-
-const TaskModal = ({ isOpen, onClose, projectId }) => {
+const EditTaskModal = ({ isOpen, onClose, task }) => {
   const dispatch = useDispatch();
   const { token, user } = useSelector((state) => state.auth);
   const projectsState = useSelector((state) => state.projects);
-  
   
   const statusOptions = [
     { value: 'To Do', label: 'To Do' },
@@ -19,39 +16,25 @@ const TaskModal = ({ isOpen, onClose, projectId }) => {
     { value: 'Done', label: 'Done' }
   ];
 
-  
-  const mapToBackendStatus = (status) => {
-    return ['To Do', 'In Progress', 'Done'].includes(status) ? status : 'To Do';
-  };
-  
-  const mapToDisplayStatus = (status) => {
-    return ['To Do', 'In Progress', 'Done'].includes(status) ? status : 'To Do';
-  };
-
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    assignee: user?._id || 'Unassigned',
+    assignee: '',
     dueDate: '',
-    status: 'To Do' 
+    status: 'To Do'
   });
   
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  
-  const project = projectsState.list?.find(p => p._id === projectId) || projectsState.currentProject;
-  
-  
+  // Get project members
+  const project = projectsState.list?.find(p => p._id === task?.projectId) || projectsState.currentProject;
   const projectMembers = project?.members || [];
-  
-  
-  
+
   const memberOptions = useMemo(() => {
     if (!projectMembers || !Array.isArray(projectMembers)) return [];
     
     return projectMembers.map(member => {
-      
       if (typeof member === 'string') {
         return { _id: member, name: 'Loading...', email: '' };
       }
@@ -64,22 +47,24 @@ const TaskModal = ({ isOpen, onClose, projectId }) => {
     });
   }, [projectMembers]);
 
-  
   useEffect(() => {
-    if (isOpen && projectId) {
-      dispatch(fetchProjectMembers({ projectId, token }));
+    if (isOpen && task) {
+      dispatch(fetchProjectMembers({ projectId: task.projectId, token }));
+      
+      // Format date for datetime-local input
+      const formattedDate = task.dueDate 
+        ? new Date(task.dueDate).toISOString().slice(0, 16)
+        : '';
+      
+      setFormData({
+        title: task.title || '',
+        description: task.description || '',
+        assignee: task.assignee?._id || '',
+        dueDate: formattedDate,
+        status: task.status || 'To Do'
+      });
     }
-  }, [isOpen, projectId, dispatch, token]);
-  
-  
-  useEffect(() => {
-    if (projectId && !projectsState.currentProject) {
-      const project = projectsState.list?.find(p => p._id === projectId);
-      if (project) {
-        dispatch(setCurrentProject(project));
-      }
-    }
-  }, [projectId, projectsState.currentProject, projectsState.list, dispatch]);
+  }, [isOpen, task, dispatch, token]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -93,73 +78,42 @@ const TaskModal = ({ isOpen, onClose, projectId }) => {
     e.preventDefault();
     
     if (!formData.title.trim()) {
-      setError({ message: 'Title is required', field: 'title' });
+      setError('Title is required');
+      toast.error('Title is required');
       return;
     }
 
     setIsSubmitting(true);
-    setError(null);
+    setError('');
 
     try {
-     
       const taskData = {
-        projectId,
         title: formData.title.trim(),
         description: formData.description?.trim() || '',
-        assignee: formData.assignee === 'Unassigned' ? null : formData.assignee,
+        assignee: formData.assignee || null,
         dueDate: formData.dueDate || null,
-        status: mapToBackendStatus(formData.status),
-        token
+        status: formData.status
       };
+
+      await dispatch(updateTask({ 
+        taskId: task._id, 
+        taskData, 
+        token 
+      })).unwrap();
       
-      const resultAction = await dispatch(createTask(taskData));
-      
-      if (createTask.fulfilled.match(resultAction)) {
-        toast.success('Task created successfully');
-        setFormData({
-          title: '',
-          description: '',
-          assignee: user?._id || 'Unassigned',
-          dueDate: '',
-          status: 'To Do' 
-        });
-        onClose();
-      } else if (createTask.rejected.match(resultAction)) {
-        const errorData = resultAction.payload;
-        
-        
-        if (errorData?.errors) {
-          const firstError = Object.values(errorData.errors)[0];
-          const errorMessage = firstError || 'Validation error';
-          setError({
-            message: errorMessage,
-            field: Object.keys(errorData.errors)[0]
-          });
-          toast.error(errorMessage);
-        } else {
-          const errorMessage = errorData?.message || 'Failed to create task';
-          setError({
-            message: errorMessage,
-            field: null
-          });
-          toast.error(errorMessage);
-        }
-      }
+      toast.success('Task updated successfully');
+      onClose();
     } catch (err) {
-      const errorMessage = 'An unexpected error occurred. Please try again.';
-      setError({
-        message: errorMessage,
-        field: null
-      });
+      const errorMessage = err || 'Failed to update task';
+      setError(errorMessage);
       toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !task) return null;
 
-  
   const handleModalClick = (e) => {
     e.stopPropagation();
   };
@@ -167,42 +121,23 @@ const TaskModal = ({ isOpen, onClose, projectId }) => {
   return (
     <div 
       className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-      onClick={onClose} 
+      onClick={onClose}
     >
       <div 
         className="bg-white rounded-lg w-full max-w-md"
-        onClick={handleModalClick} 
+        onClick={handleModalClick}
       >
         <div className="flex justify-between items-center border-b p-4">
-          <h2 className="text-xl font-semibold">Create New Task</h2>
+          <h2 className="text-xl font-semibold">Edit Task</h2>
           <button 
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 text-2xl"
-            aria-label="Close"
+            className="text-gray-500 hover:text-gray-700"
             disabled={isSubmitting}
           >
-            &times;
+            <X size={24} />
           </button>
         </div>
         
-        {error && (
-          <div 
-            className={`p-4 mb-4 rounded ${
-              error.field === 'title' ? 'border-l-4 border-yellow-500 bg-yellow-50' : 'border-l-4 border-red-500 bg-red-50'
-            }`}
-            role="alert"
-          >
-            <p className={`${error.field === 'title' ? 'text-yellow-700' : 'text-red-700'}`}>
-              {error.message}
-              {error.field && (
-                <span className="block mt-1 text-sm">
-                  Please check the <span className="font-semibold">{error.field}</span> field.
-                </span>
-              )}
-            </p>
-          </div>
-        )}
-
         <form onSubmit={handleSubmit} className="p-6">
           <div className="mb-4">
             <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
@@ -242,35 +177,21 @@ const TaskModal = ({ isOpen, onClose, projectId }) => {
               <label htmlFor="assignee" className="block text-sm font-medium text-gray-700 mb-1">
                 Assign To
               </label>
-              <div className="relative">
-                <select
-                  id="assignee"
-                  name="assignee"
-                  value={formData.assignee}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
-                  disabled={isSubmitting || memberOptions.length === 0}
-                >
-                  <option value="">
-                    {memberOptions.length === 0 ? 'Loading members...' : 'Select an assignee'}
+              <select
+                id="assignee"
+                name="assignee"
+                value={formData.assignee}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={isSubmitting}
+              >
+                <option value="">Unassigned</option>
+                {memberOptions.map(member => (
+                  <option key={member._id} value={member._id}>
+                    {member.name}
                   </option>
-                 
-                  {memberOptions.map(member => (
-                    <option 
-                      key={member._id} 
-                      value={member._id}
-                      className="flex items-center"
-                    >
-                      {member.name} {member.email && `(${member.email})`}
-                    </option>
-                  ))}
-                </select>
-                <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                  <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 011.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
-                </div>
-              </div>
+                ))}
+              </select>
             </div>
 
             <div>
@@ -282,7 +203,7 @@ const TaskModal = ({ isOpen, onClose, projectId }) => {
                 name="status"
                 value={formData.status}
                 onChange={handleChange}
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 disabled={isSubmitting}
               >
                 {statusOptions.map((option) => (
@@ -323,7 +244,7 @@ const TaskModal = ({ isOpen, onClose, projectId }) => {
               className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Creating...' : 'Create Task'}
+              {isSubmitting ? 'Updating...' : 'Update Task'}
             </button>
           </div>
         </form>
@@ -332,4 +253,4 @@ const TaskModal = ({ isOpen, onClose, projectId }) => {
   );
 };
 
-export default TaskModal;
+export default EditTaskModal;

@@ -22,7 +22,7 @@ const Sidebar = () => {
   const { user } = useSelector((state) => state.auth);
   
   return (
-    <div className="w-66 bg-gradient-to-br from-blue-600 to-indigo-800 border-r border-gray-100 h-screen fixed left-0 top-0 pt-16 shadow-sm z-30">
+    <div className="w-66 bg-gradient-to-br from-blue-600 to-indigo-800 h-screen fixed left-0 top-0 pt-16 shadow-sm z-30">
       <div className="p-4">
         
         

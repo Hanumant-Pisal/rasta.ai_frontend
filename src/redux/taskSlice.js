@@ -60,6 +60,43 @@ export const updateTaskOrder = createAsyncThunk(
   }
 );
 
+export const updateTask = createAsyncThunk(
+  "tasks/update",
+  async ({ taskId, taskData, token }, { rejectWithValue }) => {
+    try {
+      const res = await axios.put(
+        `${API}/${taskId}`,
+        taskData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+      return res.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to update task');
+    }
+  }
+);
+
+export const deleteTask = createAsyncThunk(
+  "tasks/delete",
+  async ({ taskId, token }, { rejectWithValue }) => {
+    try {
+      await axios.delete(`${API}/${taskId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      return taskId;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to delete task');
+    }
+  }
+);
+
 export const createTask = createAsyncThunk(
   "tasks/create",
   async ({ projectId, title, description, assignee, dueDate, status = 'pending', token }, { rejectWithValue }) => {
@@ -206,6 +243,35 @@ const taskSlice = createSlice({
         state.error = action.payload || 'Failed to update task order';
       })
       
+      // Update Task
+      .addCase(updateTask.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateTask.fulfilled, (state, action) => {
+        state.loading = false;
+        const index = state.list.findIndex(t => t._id === action.payload.task?._id);
+        if (index !== -1) {
+          state.list[index] = action.payload.task;
+        }
+      })
+      .addCase(updateTask.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Failed to update task';
+      })
+      
+      // Delete Task
+      .addCase(deleteTask.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(deleteTask.fulfilled, (state, action) => {
+        state.loading = false;
+        state.list = state.list.filter(t => t._id !== action.payload);
+      })
+      .addCase(deleteTask.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Failed to delete task';
+      })
+      
       .addCase(fetchAllTasks.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -227,7 +293,7 @@ export const fetchAllTasks = createAsyncThunk(
   "tasks/fetchAll",
   async (token, { rejectWithValue }) => {
     try {
-      const res = await axios.get(`${API}/`, {
+      const res = await axios.get(`${API}/all`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const tasks = Array.isArray(res.data) ? res.data : (res.data?.data || []);
