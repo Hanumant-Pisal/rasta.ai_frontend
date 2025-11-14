@@ -2,8 +2,9 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../redux/authSlice";
 import { useNavigate } from "react-router-dom";
+import { Menu } from "lucide-react";
 
-export default function Navbar() {
+export default function Navbar({ onMenuClick }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
@@ -20,12 +21,20 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-40 bg-white-600 text-white shadow-md">
-      <div className=" px-4 sm:px-6 lg:px-8">
+    <nav className="fixed top-0 left-0 right-0 z-40 bg-white text-gray-800 shadow-md">
+      <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
-          <div className="flex items-center">
+          <div className="flex items-center gap-3">
+            {/* Mobile menu button */}
+            <button
+              onClick={onMenuClick}
+              className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <Menu className="w-6 h-6 text-gray-700" />
+            </button>
+            
             <h1 
-              className="text-xl font-bold cursor-pointer hover:text-blue-100 transition-colors"
+              className="text-lg sm:text-xl font-bold cursor-pointer bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent hover:from-blue-700 hover:to-indigo-700 transition-all"
               onClick={() => navigate("/")}
             >
               Trellio-Lite
@@ -39,15 +48,15 @@ export default function Navbar() {
                   onClick={() => setShowDropdown(!showDropdown)}
                   className="flex items-center space-x-2 focus:outline-none"
                 >
-                  <div className="h-8 w-8 rounded-full bg-blue-700 flex items-center justify-center text-sm font-semibold">
+                  <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-sm font-semibold text-white">
                     {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
                   </div>
-                  <span className="hidden md:inline-block text-sm font-medium text-black">
+                  <span className="hidden sm:inline-block text-sm font-medium text-gray-800">
                     {user.name}
                   </span>
                   
                   <svg 
-                    className={`h-4 w-4 transition-transform ${showDropdown ? 'transform rotate-180' : ''}`} 
+                    className={`h-4 w-4 text-gray-600 transition-transform ${showDropdown ? 'transform rotate-180' : ''}`} 
                     fill="none" 
                     viewBox="0 0 24 24" 
                     stroke="currentColor"

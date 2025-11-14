@@ -373,7 +373,7 @@ const Analytics = () => {
 
   return (
     <div className="max-w-full overflow-x-hidden">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">Analytics Dashboard</h1>
+      <h1 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">Analytics Dashboard</h1>
       
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
@@ -381,7 +381,7 @@ const Analytics = () => {
         </div>
       )}
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
         <StatsCard
           title="Total Project"
           value={stats.totalProjects}
@@ -429,24 +429,27 @@ const Analytics = () => {
       </div>
 
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 max-w-full">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 max-w-full">
        
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <div className="h-80 flex items-center justify-center">
+        <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
+          <h3 className="text-sm sm:text-base font-semibold text-gray-700 mb-3 sm:mb-4">Task Status</h3>
+          <div className="h-64 sm:h-80 flex items-center justify-center">
             <Doughnut data={taskStatusData} options={taskStatusOptions} />
           </div>
         </div>
         
         
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <div className="h-80">
+        <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
+          <h3 className="text-sm sm:text-base font-semibold text-gray-700 mb-3 sm:mb-4">Tasks by Project</h3>
+          <div className="h-64 sm:h-80">
             <Bar data={projectTaskData} options={projectTaskOptions} />
           </div>
         </div>
 
        
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <div className="h-80 flex items-center justify-center">
+        <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
+          <h3 className="text-sm sm:text-base font-semibold text-gray-700 mb-3 sm:mb-4">Overview</h3>
+          <div className="h-64 sm:h-80 flex items-center justify-center">
             <Pie data={pieChartData} options={pieOptions} />
           </div>
         </div>
