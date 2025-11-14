@@ -4,6 +4,7 @@ import { fetchAllMembers, deleteMember } from '../redux/teamSlice';
 import { Users, UserPlus, Mail, Phone, Trash2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Loader from '../components/Loader';
 
 const Team = () => {
   const dispatch = useDispatch();
@@ -44,12 +45,7 @@ const Team = () => {
   }, [dispatch]);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-        <p className="ml-4">Loading team members...</p>
-      </div>
-    );
+    return <Loader text="Loading team members..." className="h-64" />;
   }
 
   if (error) {

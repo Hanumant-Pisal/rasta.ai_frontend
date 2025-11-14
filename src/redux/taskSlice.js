@@ -3,7 +3,8 @@ import axios from "axios";
 
 const API = "http://localhost:5000/api/tasks";
 
-export const fetchTasks = createAsyncThunk("tasks/fetchAll", async ({ projectId, token }, { rejectWithValue }) => {
+
+export const fetchTasks = createAsyncThunk("tasks/fetchByProject", async ({ projectId, token }, { rejectWithValue }) => {
   try {
     const res = await axios.get(`${API}/project/${projectId}`, {
       headers: { Authorization: `Bearer ${token}` }
@@ -186,9 +187,43 @@ const taskSlice = createSlice({
       .addCase(createTask.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || 'Failed to create task';
+      })
+      
+      .addCase(fetchAllTasks.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAllTasks.fulfilled, (state, action) => {
+        state.loading = false;
+        state.list = Array.isArray(action.payload) ? action.payload : [];
+        state.error = null;
+      })
+      .addCase(fetchAllTasks.rejected, (state, action) => {
+        state.loading = false;
+        state.list = [];
+        state.error = action.payload || 'Failed to fetch tasks';
       });
   }
 });
+
+export const fetchAllTasks = createAsyncThunk(
+  "tasks/fetchAll",
+  async (token, { rejectWithValue }) => {
+    try {
+      const res = await axios.get(`${API}/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const tasks = Array.isArray(res.data) ? res.data : (res.data?.data || []);
+      return tasks.map(task => ({
+        ...task,
+        status: ['To Do', 'In Progress', 'Done'].includes(task.status) ? task.status : 'To Do'
+      }));
+    } catch (error) {
+      console.error('Error fetching all tasks:', error);
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch tasks');
+    }
+  }
+);
 
 export const { clearTasks } = taskSlice.actions;
 

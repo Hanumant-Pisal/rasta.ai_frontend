@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 
 const menuItems = [
-  { name: 'Analytics', icon: BarChart2, path: '/analytics' },
+  { name: 'Dashboard', icon: BarChart2, path: '/analytics' },
   { name: 'Projects', icon: FolderKanban, path: '/projects' },
   { name: 'Team', icon: Users, path: '/team', requiresOwner: true },
   { name: 'Settings', icon: Settings, path: '/settings' },
@@ -22,7 +22,7 @@ const Sidebar = () => {
   const { user } = useSelector((state) => state.auth);
   
   return (
-    <div className="w-64 bg-white border-r border-gray-100 h-screen fixed left-0 top-0 pt-16 shadow-sm z-30">
+    <div className="w-66 bg-gradient-to-br from-blue-600 to-indigo-800 border-r border-gray-100 h-screen fixed left-0 top-0 pt-16 shadow-sm z-30">
       <div className="p-4">
         
         
@@ -41,21 +41,20 @@ const Sidebar = () => {
                 key={item.name}
                 to={item.path}
                 className={`
-                  flex items-center justify-between px-4 py-3 rounded-lg transition-colors
+                  flex items-center justify-between px-4 py-4 rounded-lg transition-colors
+                  text-base font-medium
                   ${isActive 
-                    ? 'bg-blue-50 text-blue-700 font-medium' 
-                    : 'text-gray-600 hover:bg-gray-50'
+                    ? 'bg-white/10 text-white' 
+                    : 'text-blue-100 hover:bg-white/5 hover:text-white'
                   }`}
               >
                 <div className="flex items-center">
                   <Icon 
-                    className={`w-5 h-5 mr-3 ${
-                      isActive ? 'text-blue-600' : 'text-gray-400'
-                    }`} 
+                    className={`w-5 h-5 mr-3 ${isActive ? 'text-white' : 'text-blue-200'}`} 
                   />
                   <span>{item.name}</span>
                 </div>
-                {isActive && <ChevronRight className="w-4 h-4 text-blue-500" />}
+                {isActive && <ChevronRight className="w-4 h-4 text-white" />}
               </Link>
             );
           })}

@@ -3,10 +3,20 @@ import axios from "axios";
 
 const API = "/api/auth";
 
-export const loginUser = createAsyncThunk("auth/login", async (data) => {
-  const res = await axios.post(`${API}/login`, data);
-  return res.data;
-});
+export const loginUser = createAsyncThunk(
+  "auth/login", 
+  async (credentials, { rejectWithValue }) => {
+    try {
+      const res = await axios.post(`${API}/login`, credentials);
+      return res.data;
+    } catch (error) {
+      
+      return rejectWithValue(
+        error.response?.data?.message || 'Invalid email or password. Please try again.'
+      );
+    }
+  }
+);
 
 export const signupUser = createAsyncThunk("auth/signup", async (data) => {
   const res = await axios.post(`${API}/signup`, data);

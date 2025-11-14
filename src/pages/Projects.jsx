@@ -110,13 +110,9 @@ export default function Projects() {
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            {isOwner ? 'Your Projects' : 'Assigned Projects'}
+            {isOwner ? 'Projects' : 'Assigned Projects'}
           </h1>
-          <p className="mt-1 text-sm text-gray-500">
-            {isOwner 
-              ? 'Manage and track all your projects in one place' 
-              : 'View and update your assigned projects'}
-          </p>
+         
         </div>
         
         {isOwner && (
