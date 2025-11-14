@@ -12,7 +12,7 @@ const EditProjectModal = ({ isOpen, onClose, onSubmit, project, loading }) => {
     if (project) {
       setProjectName(project.name || '');
       setDescription(project.description || '');
-      // Extract email addresses from member objects if they exist
+      
       const memberEmails = project.members?.map(member => 
         typeof member === 'object' ? member.email : member
       ) || [];
@@ -139,7 +139,7 @@ const EditProjectModal = ({ isOpen, onClose, onSubmit, project, loading }) => {
             {members.length > 0 && (
               <div className="mt-2 space-y-2">
                 {members.map((member, index) => {
-                  // Handle both object and string member formats
+                  
                   const email = typeof member === 'object' ? member.email : member;
                   const key = typeof member === 'object' ? member._id || `member-${index}` : `member-${index}`;
                   

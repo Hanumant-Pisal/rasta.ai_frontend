@@ -5,10 +5,13 @@ import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import Projects from "./pages/Projects";
 import ProjectPage from "./pages/ProjectPage";
+import Tasks from "./pages/Tasks";
+import Analytics from "./pages/Analytics";
+import Team from "./pages/Team";
 import DashboardLayout from "./components/DashboardLayout";
 import { useSelector } from "react-redux";
 
-// Protected Route Wrapper
+
 const ProtectedRoute = ({ children }) => {
   const { token } = useSelector((state) => state.auth);
   
@@ -27,22 +30,23 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public Routes */}
+       
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         
-        {/* Protected Routes */}
+        
         <Route element={<ProtectedRoute />}>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/projects" element={<Projects />} />
-          <Route path="/team" element={<div className="p-6">Team Management</div>} />
-          <Route path="/analytics" element={<div className="p-6">Analytics Dashboard</div>} />
+          <Route path="/team" element={<Team />} />
+          <Route path="/analytics" element={<Analytics />} />
           <Route path="/settings" element={<div className="p-6">Settings Page</div>} />
           <Route path="/project/:id" element={<ProjectPage />} />
+          <Route path="/project/:projectId/tasks" element={<Tasks />} />
         </Route>
         
-        {/* Catch all other routes */}
+      
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

@@ -16,7 +16,7 @@ export default function Navbar() {
 
   const handleProfileClick = () => {
     setShowDropdown(false);
-    navigate("/profile"); // You can implement a profile page if needed
+    navigate("/profile"); 
   };
 
   return (
@@ -83,7 +83,7 @@ export default function Navbar() {
         </div>
       </div>
       
-      {/* Close dropdown when clicking outside */}
+      
       {showDropdown && (
         <div 
           className="fixed inset-0 z-40" 

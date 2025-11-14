@@ -20,7 +20,7 @@ export default function Dashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const isOwner = user?.role === 'owner';
   
-  // Use local state for the current page to trigger re-renders
+  
   const [currentPage, setCurrentPage] = useState(pagination.page || 1);
   const { pages, total } = pagination;
 
@@ -42,7 +42,7 @@ export default function Dashboard() {
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= pages) {
       setCurrentPage(newPage);
-      // Scroll to top of the page when changing pages
+      
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };

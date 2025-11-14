@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { createTask } from '../redux/taskSlice';
 import { fetchProjectMembers, setCurrentProject } from '../redux/projectSlice';
 
-// Add this selector to get projects from Redux store
+
 const selectProjects = (state) => state.projects;
 
 const TaskModal = ({ isOpen, onClose, projectId }) => {
@@ -11,35 +11,40 @@ const TaskModal = ({ isOpen, onClose, projectId }) => {
   const { token, user } = useSelector((state) => state.auth);
   const projectsState = useSelector((state) => state.projects);
   
-  // Status options that match the backend enum exactly
+  
   const statusOptions = [
     { value: 'To Do', label: 'To Do' },
     { value: 'In Progress', label: 'In Progress' },
     { value: 'Done', label: 'Done' }
   ];
 
-  // Keep the status as is since we're now using the exact values
-  const mapToBackendStatus = (status) => status;
-  const mapToDisplayStatus = (status) => status;
+  
+  const mapToBackendStatus = (status) => {
+    return ['To Do', 'In Progress', 'Done'].includes(status) ? status : 'To Do';
+  };
+  
+  const mapToDisplayStatus = (status) => {
+    return ['To Do', 'In Progress', 'Done'].includes(status) ? status : 'To Do';
+  };
 
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     assignee: user?._id || 'Unassigned',
     dueDate: '',
-    status: mapToDisplayStatus('pending') || 'To Do'
+    status: 'To Do' 
   });
   
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Get the current project from either the list or currentProject
+  
   const project = projectsState.list?.find(p => p._id === projectId) || projectsState.currentProject;
   
-  // Extract members with fallback to empty array
+  
   const projectMembers = project?.members || [];
   
-  // Log members for debugging
+  
   useEffect(() => {
     console.log('Current project:', project);
     console.log('Project members:', projectMembers);
@@ -51,32 +56,32 @@ const TaskModal = ({ isOpen, onClose, projectId }) => {
     }
   }, [project, projectMembers]);
   
-  // Transform members data to ensure consistent structure
+  
   const memberOptions = useMemo(() => {
     if (!projectMembers || !Array.isArray(projectMembers)) return [];
     
     return projectMembers.map(member => {
-      // Handle case where member might be just an ID string
+      
       if (typeof member === 'string') {
         return { _id: member, name: 'Loading...', email: '' };
       }
-      // Handle case where member is a populated object
+      
       return {
         _id: member._id,
-        name: member.name || 'Unnamed User',
-        email: member.email || ''
+        name: member.name,
+        email: member.email 
       };
     });
   }, [projectMembers]);
 
-  // Fetch project members when modal opens
+  
   useEffect(() => {
     if (isOpen && projectId) {
       dispatch(fetchProjectMembers({ projectId, token }));
     }
   }, [isOpen, projectId, dispatch, token]);
   
-  // Set current project in Redux store if not already set
+  
   useEffect(() => {
     if (projectId && !projectsState.currentProject) {
       const project = projectsState.list?.find(p => p._id === projectId);
@@ -106,7 +111,7 @@ const TaskModal = ({ isOpen, onClose, projectId }) => {
     setError(null);
 
     try {
-      // Prepare task data
+     
       const taskData = {
         projectId,
         title: formData.title.trim(),
@@ -119,27 +124,27 @@ const TaskModal = ({ isOpen, onClose, projectId }) => {
 
       console.log('Submitting task data:', {
         ...taskData,
-        token: '***' // Don't log the actual token
+        token: '***' 
       });
       
       const resultAction = await dispatch(createTask(taskData));
       
       if (createTask.fulfilled.match(resultAction)) {
         console.log('Task created successfully:', resultAction.payload);
-        // Reset form and close modal on success
+        
         setFormData({
           title: '',
           description: '',
-          assignee: user?._id || '',
+          assignee: user?._id || 'Unassigned',
           dueDate: '',
-          status: 'pending'
+          status: 'To Do' 
         });
         onClose();
       } else if (createTask.rejected.match(resultAction)) {
         const errorData = resultAction.payload;
         console.error('Task creation failed:', errorData);
         
-        // Handle field-specific errors
+        
         if (errorData?.errors) {
           const firstError = Object.values(errorData.errors)[0];
           setError({
@@ -166,7 +171,7 @@ const TaskModal = ({ isOpen, onClose, projectId }) => {
 
   if (!isOpen) return null;
 
-  // Prevent click propagation to parent elements
+  
   const handleModalClick = (e) => {
     e.stopPropagation();
   };
@@ -174,11 +179,11 @@ const TaskModal = ({ isOpen, onClose, projectId }) => {
   return (
     <div 
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-      onClick={onClose} // Close modal when clicking on the overlay
+      onClick={onClose} 
     >
       <div 
         className="bg-white rounded-lg w-full max-w-md"
-        onClick={handleModalClick} // Prevent click from closing the modal
+        onClick={handleModalClick} 
       >
         <div className="flex justify-between items-center border-b p-4">
           <h2 className="text-xl font-semibold">Create New Task</h2>

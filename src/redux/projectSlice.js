@@ -1,10 +1,10 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-// Base API URL - make sure this matches your backend URL
+
 const API = "http://localhost:5000";
 
-// Get all projects for the logged-in user with pagination
+
 export const fetchProjects = createAsyncThunk(
   "projects/fetchAll", 
   async ({ token, page = 1 }, { rejectWithValue }) => {
@@ -28,12 +28,12 @@ export const fetchProjects = createAsyncThunk(
   }
 );
 
-// Create a new project
+
 export const createProject = createAsyncThunk(
   "projects/create", 
   async ({ data, token }, { rejectWithValue, dispatch }) => {
     try {
-      // Ensure members is an array and add the current user as the first member if not already included
+  
       const members = Array.isArray(data.members) ? [...new Set([...data.members])] : [];
       
       const projectData = {
@@ -53,7 +53,7 @@ export const createProject = createAsyncThunk(
         }
       );
       
-      // Fetch the updated project list to ensure we have the latest data
+
       await dispatch(fetchProjects({ token }));
       
       return res.data;
@@ -64,7 +64,7 @@ export const createProject = createAsyncThunk(
   }
 );
 
-// Update a project
+
 export const updateProject = createAsyncThunk(
   "projects/update",
   async ({ projectId, data, token }, { rejectWithValue, dispatch }) => {
@@ -80,10 +80,10 @@ export const updateProject = createAsyncThunk(
         }
       );
       
-      // Refresh the projects list to ensure we have the latest data
+     
       await dispatch(fetchProjects({ token }));
       
-      return res.data; // Should contain the updated project
+      return res.data; 
     } catch (error) {
       console.error('Error updating project:', error);
       return rejectWithValue(error.response?.data?.message || 'Failed to update project');
@@ -91,7 +91,7 @@ export const updateProject = createAsyncThunk(
   }
 );
 
-// Delete a project
+
 export const deleteProject = createAsyncThunk(
   'projects/delete',
   async ({ projectId, token }, { rejectWithValue, dispatch }) => {
@@ -104,7 +104,7 @@ export const deleteProject = createAsyncThunk(
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`
           },
-          validateStatus: status => status < 500 // Don't throw for 4xx errors
+          validateStatus: status => status < 500 
         }
       );
 
@@ -114,7 +114,7 @@ export const deleteProject = createAsyncThunk(
         throw new Error(response.data.message || 'Failed to delete project');
       }
       
-      // Refresh the projects list after successful deletion
+      
       await dispatch(fetchProjects({ token }));
       
       return { projectId };
@@ -129,7 +129,7 @@ export const deleteProject = createAsyncThunk(
   }
 );
 
-// Add a member to a project
+
 export const addMember = createAsyncThunk(
   'projects/addMember',
   async ({ projectId, memberEmail, token }, { rejectWithValue }) => {
@@ -144,7 +144,7 @@ export const addMember = createAsyncThunk(
           }
         }
       );
-      return res.data; // Should contain { message, project }
+      return res.data; 
     } catch (error) {
       console.error('Error adding member:', error);
       return rejectWithValue(error.response?.data?.message || 'Failed to add member');
@@ -152,7 +152,7 @@ export const addMember = createAsyncThunk(
   }
 );
 
-// Fetch members for a specific project
+
 export const fetchProjectMembers = createAsyncThunk(
   'projects/fetchMembers',
   async ({ projectId, token }, { rejectWithValue }) => {
@@ -197,7 +197,7 @@ const projectSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Fetch Projects
+      
       .addCase(fetchProjects.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -217,7 +217,7 @@ const projectSlice = createSlice({
         state.error = action.payload;
       })
       
-      // Create Project
+      
       .addCase(createProject.pending, (state) => {
         state.creating = true;
         state.error = null;
@@ -225,7 +225,7 @@ const projectSlice = createSlice({
       .addCase(createProject.fulfilled, (state, action) => {
         state.creating = false;
         if (action.payload) {
-          // Remove the project if it already exists to avoid duplicates
+          
           const filteredList = state.list.filter(project => project._id !== action.payload._id);
           state.list = [action.payload, ...filteredList];
           state.currentProject = action.payload;
@@ -237,7 +237,7 @@ const projectSlice = createSlice({
         state.loading = false;
       })
       
-      // Update Project
+      
       .addCase(updateProject.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -245,11 +245,11 @@ const projectSlice = createSlice({
       .addCase(updateProject.fulfilled, (state, action) => {
         state.loading = false;
         if (action.payload) {
-          // Update the project in the list if it exists
+          
           state.list = state.list.map(project => 
             project._id === action.payload._id ? action.payload : project
           );
-          // Update current project if it's the one being edited
+          
           if (state.currentProject && state.currentProject._id === action.payload._id) {
             state.currentProject = action.payload;
           }
@@ -260,14 +260,14 @@ const projectSlice = createSlice({
         state.error = action.payload || action.error.message || 'Failed to update project';
       })
       
-      // Delete Project
+     
       .addCase(deleteProject.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(deleteProject.fulfilled, (state, action) => {
         state.loading = false;
-        // The projects list will be refreshed from the server, but we can optimistically update
+     
         state.list = state.list.filter(project => project._id !== action.payload.projectId);
       })
       .addCase(deleteProject.rejected, (state, action) => {
@@ -275,21 +275,21 @@ const projectSlice = createSlice({
         state.error = action.payload || 'Failed to delete project';
       })
 
-            // Fetch Project Members
+           
       .addCase(fetchProjectMembers.fulfilled, (state, action) => {
         const { projectId, members } = action.payload;
-        // Update members for the project in the list
+        
         const projectIndex = state.list.findIndex(p => p._id === projectId);
         if (projectIndex !== -1) {
           state.list[projectIndex].members = members;
         }
-        // Also update currentProject if it's the one being viewed
+        
         if (state.currentProject?._id === projectId) {
           state.currentProject.members = members;
         }
       })
       
-      // Add Member
+     
       .addCase(addMember.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -298,13 +298,13 @@ const projectSlice = createSlice({
         state.loading = false;
         const { project } = action.payload;
         
-        // Update the project in the list
+        
         const projectIndex = state.list.findIndex(p => p._id === project._id);
         if (projectIndex !== -1) {
           state.list[projectIndex] = project;
         }
         
-        // Update currentProject if it's the one being viewed
+        
         if (state.currentProject?._id === project._id) {
           state.currentProject = project;
         }

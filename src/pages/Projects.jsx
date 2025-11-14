@@ -47,10 +47,10 @@ export default function Projects() {
         token 
       })).unwrap();
       
-      // Refresh the projects list to show the newly created project
+      
       await dispatch(fetchProjects({ token, page: currentPage }));
       
-      // Close the modal after successful creation and refresh
+      
       setIsCreateModalOpen(false);
     } catch (error) {
       console.error('Failed to create project:', error);
@@ -92,7 +92,7 @@ export default function Projects() {
         token
       })).unwrap();
       
-      // Close the delete modal
+   
       setIsDeleteModalOpen(false);
       setProjectToDelete(null);
     } catch (error) {
@@ -163,7 +163,7 @@ export default function Projects() {
             ))}
           </div>
           
-          {/* Pagination */}
+          
           {pagination.pages > 1 && (
             <div className="flex flex-col sm:flex-row items-center justify-between mt-8 space-y-4 sm:space-y-0">
               <div className="text-sm text-gray-600">
@@ -254,7 +254,7 @@ export default function Projects() {
         loading={creating}
       />
 
-      {/* Delete Confirmation Modal */}
+      
       {isDeleteModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg w-full max-w-md">

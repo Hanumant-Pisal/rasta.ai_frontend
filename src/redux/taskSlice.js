@@ -9,8 +9,19 @@ export const fetchTasks = createAsyncThunk("tasks/fetchAll", async ({ projectId,
       headers: { Authorization: `Bearer ${token}` }
     });
     
-    // Return the data array directly if it exists, otherwise return an empty array
-    return Array.isArray(res.data) ? res.data : (res.data?.data || []);
+    
+    const tasks = Array.isArray(res.data) ? res.data : (res.data?.data || []);
+    
+    return tasks.map(task => ({
+      ...task,
+   
+      status: mapToDisplayStatus(task.status)
+    }));
+    
+    function mapToDisplayStatus(status) {
+      
+      return ['To Do', 'In Progress', 'Done'].includes(status) ? status : 'To Do';
+    }
   } catch (error) {
     console.error('Error fetching tasks:', error);
     return rejectWithValue(error.response?.data?.message || 'Failed to fetch tasks');
@@ -31,7 +42,7 @@ export const createTask = createAsyncThunk(
   "tasks/create",
   async ({ projectId, title, description, assignee, dueDate, status = 'pending', token }, { rejectWithValue }) => {
     try {
-      // Log the raw input for debugging
+      
       console.log('Raw input:', { 
         projectId, 
         title, 
@@ -42,8 +53,15 @@ export const createTask = createAsyncThunk(
         token: token ? '***' : 'MISSING TOKEN'
       });
 
-      // Ensure assignee is either a valid ID or null
+      
       const assigneeId = assignee && assignee !== 'Unassigned' ? assignee : null;
+      
+
+      const backendStatus = ['To Do', 'In Progress', 'Done'].includes(status) 
+        ? status 
+        : 'To Do';
+      
+      console.log('Using status:', { original: status, using: backendStatus });
       
       const taskData = {
         projectId, 
@@ -51,8 +69,8 @@ export const createTask = createAsyncThunk(
         description: description?.trim() || '',
         assignee: assigneeId,
         dueDate: dueDate || null,
-        status: ['pending', 'in-progress', 'completed'].includes(status) ? status : 'pending',
-        token // We'll handle this in the interceptor
+        status: backendStatus,
+        token
       };
 
       console.log('Sending task data:', { ...taskData, token: '***' });
@@ -65,7 +83,7 @@ export const createTask = createAsyncThunk(
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           },
-          validateStatus: (status) => status < 500 // Don't throw for 4xx errors
+          validateStatus: (status) => status < 500 
         }
       );
       
@@ -130,17 +148,17 @@ const taskSlice = createSlice({
       })
       .addCase(fetchTasks.fulfilled, (state, action) => {
         state.loading = false;
-        // Ensure we're always setting an array
+     
         state.list = Array.isArray(action.payload) ? action.payload : [];
         state.error = null;
       })
       .addCase(fetchTasks.rejected, (state, action) => {
         state.loading = false;
-        state.list = []; // Reset list on error to prevent stale data
+        state.list = []; 
         state.error = action.payload || 'Failed to fetch tasks';
       })
       
-      // Update Task Status
+     
       .addCase(updateTaskStatus.fulfilled, (state, action) => {
         if (action.payload && action.payload._id) {
           const idx = state.list.findIndex((t) => t?._id === action.payload._id);
@@ -154,7 +172,7 @@ const taskSlice = createSlice({
         }
       })
       
-      // Create Task
+    
       .addCase(createTask.pending, (state) => {
         state.loading = true;
         state.error = null;

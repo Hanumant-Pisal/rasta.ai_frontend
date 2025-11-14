@@ -5,14 +5,14 @@ import TaskCard from "./TaskCard";
 export default function KanbanBoard({ tasks = [], onDragEnd }) {
   const columns = ["To Do", "In Progress", "Done"];
   
-  // Ensure tasks is an array and has items
+  
   const safeTasks = Array.isArray(tasks) ? tasks : [];
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
       <div className="grid grid-cols-3 gap-4 mt-4">
         {columns.map((col) => {
-          // Filter tasks for this column
+          
           const columnTasks = safeTasks.filter(
             (task) => task && task.status === col
           );
