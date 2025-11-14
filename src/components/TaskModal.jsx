@@ -45,17 +45,6 @@ const TaskModal = ({ isOpen, onClose, projectId }) => {
   const projectMembers = project?.members || [];
   
   
-  useEffect(() => {
-    console.log('Current project:', project);
-    console.log('Project members:', projectMembers);
-    
-    if (project?.members) {
-      console.log('Members array exists, length:', project.members.length);
-    } else {
-      console.log('No members array in project data');
-    }
-  }, [project, projectMembers]);
-  
   
   const memberOptions = useMemo(() => {
     if (!projectMembers || !Array.isArray(projectMembers)) return [];
@@ -121,16 +110,10 @@ const TaskModal = ({ isOpen, onClose, projectId }) => {
         status: mapToBackendStatus(formData.status),
         token
       };
-
-      console.log('Submitting task data:', {
-        ...taskData,
-        token: '***' 
-      });
       
       const resultAction = await dispatch(createTask(taskData));
       
       if (createTask.fulfilled.match(resultAction)) {
-        console.log('Task created successfully:', resultAction.payload);
         
         setFormData({
           title: '',
@@ -142,7 +125,6 @@ const TaskModal = ({ isOpen, onClose, projectId }) => {
         onClose();
       } else if (createTask.rejected.match(resultAction)) {
         const errorData = resultAction.payload;
-        console.error('Task creation failed:', errorData);
         
         
         if (errorData?.errors) {
@@ -159,7 +141,6 @@ const TaskModal = ({ isOpen, onClose, projectId }) => {
         }
       }
     } catch (err) {
-      console.error('Unexpected error in handleSubmit:', err);
       setError({
         message: 'An unexpected error occurred. Please try again.',
         field: null

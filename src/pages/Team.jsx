@@ -12,36 +12,25 @@ const Team = () => {
   const { user } = useSelector((state) => state.auth);
   
   const handleDelete = (memberId, memberName) => {
-    console.log('Delete button clicked for member:', { memberId, memberName });
     if (!memberId) {
-      console.error('No member ID provided for deletion');
       toast.error('Error: No member ID provided');
       return;
     }
 
     if (window.confirm(`Are you sure you want to remove ${memberName} from the team?`)) {
-      console.log('Dispatching deleteMember with ID:', memberId);
       dispatch(deleteMember(memberId))
         .unwrap()
         .then(() => {
-          console.log('Successfully deleted member:', memberId);
           toast.success('Team member removed successfully');
         })
         .catch((error) => {
-          console.error('Error in handleDelete:', error);
           toast.error(error || 'Failed to remove team member');
         });
     }
   };
 
   useEffect(() => {
-    dispatch(fetchAllMembers())
-      .then((result) => {
-        console.log('Members data loaded:', result);
-        if (result?.payload) {
-          console.log('First member data:', result.payload[0]);
-        }
-      });
+    dispatch(fetchAllMembers());
   }, [dispatch]);
 
   if (loading) {

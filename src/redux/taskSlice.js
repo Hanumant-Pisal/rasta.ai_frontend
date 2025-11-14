@@ -39,20 +39,31 @@ export const updateTaskStatus = createAsyncThunk("tasks/updateStatus", async ({ 
   return res.data;
 });
 
+export const updateTaskOrder = createAsyncThunk(
+  "tasks/updateOrder",
+  async ({ tasks, token }, { rejectWithValue }) => {
+    try {
+      const res = await axios.put(
+        `${API}/update-order`,
+        { tasks },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+      return res.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to update task order');
+    }
+  }
+);
+
 export const createTask = createAsyncThunk(
   "tasks/create",
   async ({ projectId, title, description, assignee, dueDate, status = 'pending', token }, { rejectWithValue }) => {
     try {
-      
-      console.log('Raw input:', { 
-        projectId, 
-        title, 
-        description, 
-        assignee,
-        dueDate,
-        status,
-        token: token ? '***' : 'MISSING TOKEN'
-      });
 
       
       const assigneeId = assignee && assignee !== 'Unassigned' ? assignee : null;
@@ -61,8 +72,6 @@ export const createTask = createAsyncThunk(
       const backendStatus = ['To Do', 'In Progress', 'Done'].includes(status) 
         ? status 
         : 'To Do';
-      
-      console.log('Using status:', { original: status, using: backendStatus });
       
       const taskData = {
         projectId, 
@@ -73,8 +82,6 @@ export const createTask = createAsyncThunk(
         status: backendStatus,
         token
       };
-
-      console.log('Sending task data:', { ...taskData, token: '***' });
 
       const res = await axios.post(
         `${API}/`,
@@ -87,12 +94,6 @@ export const createTask = createAsyncThunk(
           validateStatus: (status) => status < 500 
         }
       );
-      
-      console.log('Response:', {
-        status: res.status,
-        data: res.data,
-        headers: res.headers
-      });
       
       if (!res.data) {
         return rejectWithValue({
@@ -116,11 +117,6 @@ export const createTask = createAsyncThunk(
       
       return res.data;
     } catch (error) {
-      console.error('Error creating task:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status
-      });
       return rejectWithValue(error.response?.data?.message || 'Failed to create task');
     }
   }
@@ -187,6 +183,27 @@ const taskSlice = createSlice({
       .addCase(createTask.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || 'Failed to create task';
+      })
+      
+      // Update Task Order
+      .addCase(updateTaskOrder.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateTaskOrder.fulfilled, (state, action) => {
+        state.loading = false;
+        if (action.payload?.tasks) {
+          // Update tasks in state with new order and status
+          action.payload.tasks.forEach(updatedTask => {
+            const idx = state.list.findIndex(t => t._id === updatedTask._id);
+            if (idx !== -1) {
+              state.list[idx] = { ...state.list[idx], ...updatedTask };
+            }
+          });
+        }
+      })
+      .addCase(updateTaskOrder.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Failed to update task order';
       })
       
       .addCase(fetchAllTasks.pending, (state) => {

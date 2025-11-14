@@ -2,7 +2,6 @@ import React from "react";
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-import Dashboard from "./pages/Dashboard";
 import Projects from "./pages/Projects";
 import ProjectPage from "./pages/ProjectPage";
 import Tasks from "./pages/Tasks";

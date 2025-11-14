@@ -114,12 +114,9 @@ const Analytics = () => {
           dispatch(fetchProjects({ token })),
           dispatch(fetchAllTasks(token)),
           dispatch(fetchAllMembers())
-        ]);
-        
-        console.log('Tasks loaded:', tasks); 
+        ]); 
         
       } catch (error) {
-        console.error('Error loading analytics data:', error);
         setError(error.message || 'Failed to load analytics data. Please try again.');
       } finally {
         if (isMounted) {
@@ -164,23 +161,6 @@ const Analytics = () => {
               </button>
             </div>
           </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-red-500">
-          <p className="font-medium">Error loading data</p>
-          <p className="text-sm">{error}</p>
-          <button 
-            onClick={() => window.location.reload()}
-            className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
-            Retry
-          </button>
         </div>
       </div>
     );
