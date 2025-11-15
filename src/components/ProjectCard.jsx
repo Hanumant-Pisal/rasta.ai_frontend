@@ -5,14 +5,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { addMember } from "../redux/projectSlice";
 import { fetchAllMembers } from "../redux/teamSlice";
 import TaskModal from "./TaskModal";
-import { UserPlus, X, MoreVertical, Edit, Trash2 } from "lucide-react";
+import { UserPlus, X, Edit2, Trash2 } from "lucide-react";
 
 export default function ProjectCard({ project, isOwner, onEdit, onDelete }) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { token } = useSelector((state) => state.auth);
   const { members: availableMembers, loading: membersLoading } = useSelector((state) => state.team);
-  const [showActions, setShowActions] = useState(false);
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [showAddMember, setShowAddMember] = useState(false);
   const [selectedMember, setSelectedMember] = useState("");
@@ -34,14 +33,18 @@ export default function ProjectCard({ project, isOwner, onEdit, onDelete }) {
     }
   };
 
-  const handleActionClick = (e, action) => {
+  const handleEdit = (e) => {
     e.stopPropagation();
-    if (action === 'edit' && typeof onEdit === 'function') {
+    if (typeof onEdit === 'function') {
       onEdit(project);
-    } else if (action === 'delete' && typeof onDelete === 'function') {
+    }
+  };
+
+  const handleDelete = (e) => {
+    e.stopPropagation();
+    if (typeof onDelete === 'function') {
       onDelete(project);
     }
-    setShowActions(false);
   };
 
   const handleAddMember = async (e) => {
@@ -96,7 +99,6 @@ export default function ProjectCard({ project, isOwner, onEdit, onDelete }) {
               onClick={(e) => {
                 e.stopPropagation();
                 setShowAddMember(!showAddMember);
-                if (showActions) setShowActions(false);
               }}
               className="action-button p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
               aria-label="Add member"
@@ -164,40 +166,21 @@ export default function ProjectCard({ project, isOwner, onEdit, onDelete }) {
             )}
           </div>
 
-          <div className="relative">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowActions(!showActions);
-                if (showAddMember) setShowAddMember(false);
-              }}
-              className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
-              aria-label="More options"
-            >
-              <MoreVertical size={18} />
-            </button>
+          <button
+            onClick={handleEdit}
+            className="action-button p-1.5 text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+            aria-label="Edit project"
+          >
+            <Edit2 size={18} />
+          </button>
 
-            {showActions && (
-              <div 
-                className="absolute right-0 mt-1 w-40 bg-white rounded-md shadow-lg z-20 border border-gray-200"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <button
-                  onClick={(e) => handleActionClick(e, 'edit')}
-                  className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                >
-                  <Edit size={14} className="mr-2" /> Edit Project
-                </button>
-                <div className="border-t border-gray-100 my-1"></div>
-                <button
-                  onClick={(e) => handleActionClick(e, 'delete')}
-                  className="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
-                >
-                  <Trash2 size={14} className="mr-2" /> Delete Project
-                </button>
-              </div>
-            )}
-          </div>
+          <button
+            onClick={handleDelete}
+            className="action-button p-1.5 text-red-600 hover:bg-red-50 rounded-full transition-colors"
+            aria-label="Delete project"
+          >
+            <Trash2 size={18} />
+          </button>
         </div>
       )}
       </div>

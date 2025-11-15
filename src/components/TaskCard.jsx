@@ -1,18 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { format } from 'date-fns';
-import { Clock, User, Flag, MoreVertical } from 'lucide-react';
+import { Clock, User, Edit2, Trash2, MessageSquare } from 'lucide-react';
 import { Badge } from './ui/badge';
-import { Button } from './ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from './ui/dropdown-menu';
 import { deleteTask } from '../redux/taskSlice';
 import { toast } from 'react-toastify';
 import EditTaskModal from './EditTaskModal';
+import axios from 'axios';
 
 export default function TaskCard({ task }) {
   const dispatch = useDispatch();
@@ -20,6 +14,26 @@ export default function TaskCard({ task }) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [commentCount, setCommentCount] = useState(0);
+  
+  // Fetch comment count
+  useEffect(() => {
+    const fetchCommentCount = async () => {
+      try {
+        const response = await axios.get(`http://localhost:5000/api/comments/task/${task._id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setCommentCount(response.data.comments?.length || 0);
+      } catch (error) {
+        // Silently fail - comment count is not critical
+      }
+    };
+    
+    if (task._id && token) {
+      fetchCommentCount();
+    }
+  }, [task._id, token, isEditModalOpen]); // Refresh when modal closes
+  
   const statusColors = {
     'To Do': 'bg-gray-100 text-gray-800',
     'In Progress': 'bg-blue-100 text-blue-800',
@@ -79,6 +93,14 @@ export default function TaskCard({ task }) {
         </p>
       )}
       
+      {/* Comment Count Badge */}
+      {commentCount > 0 && (
+        <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-3">
+          <MessageSquare className="h-3.5 w-3.5" />
+          <span>{commentCount} {commentCount === 1 ? 'comment' : 'comments'}</span>
+        </div>
+      )}
+      
       {/* Footer with metadata */}
       <div className="flex items-center justify-between pt-3 border-t border-gray-100">
         <div className="flex flex-col gap-2 flex-1">
@@ -112,17 +134,22 @@ export default function TaskCard({ task }) {
         </div>
         
         {/* Actions */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
-              <MoreVertical className="h-4 w-4 text-gray-500" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={handleEdit}>Edit</DropdownMenuItem>
-            <DropdownMenuItem onClick={handleDeleteClick} className="text-red-600">Delete</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={handleEdit}
+            className="p-1.5 rounded-md hover:bg-blue-50 text-blue-600 transition-colors"
+            title="Edit task"
+          >
+            <Edit2 className="h-4 w-4" />
+          </button>
+          <button
+            onClick={handleDeleteClick}
+            className="p-1.5 rounded-md hover:bg-red-50 text-red-600 transition-colors"
+            title="Delete task"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
       </div>
 
       {/* Edit Modal */}
