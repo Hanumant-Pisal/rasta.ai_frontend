@@ -5,7 +5,6 @@ import {
   LayoutDashboard, 
   FolderKanban, 
   Users, 
-  Settings, 
   BarChart2,
   ChevronRight,
   X
@@ -15,7 +14,6 @@ const menuItems = [
   { name: 'Dashboard', icon: BarChart2, path: '/analytics' },
   { name: 'Projects', icon: FolderKanban, path: '/projects' },
   { name: 'Team', icon: Users, path: '/team', requiresOwner: true },
-  { name: 'Settings', icon: Settings, path: '/settings' },
 ];
 
 const Sidebar = ({ isOpen, onClose }) => {
@@ -24,7 +22,7 @@ const Sidebar = ({ isOpen, onClose }) => {
   
   return (
     <>
-      {/* Mobile Overlay */}
+    
       {isOpen && (
         <div 
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
@@ -32,20 +30,27 @@ const Sidebar = ({ isOpen, onClose }) => {
         />
       )}
       
-      {/* Sidebar */}
+      
       <div className={`
-        w-64 bg-gradient-to-br from-blue-600 to-indigo-800 h-screen fixed left-0 top-0 pt-16 shadow-lg z-50
+        w-64 bg-gradient-to-br from-blue-600 to-indigo-800 h-screen fixed left-0 top-0 shadow-lg z-50
         transition-transform duration-300 ease-in-out
         lg:translate-x-0
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
-        {/* Close button for mobile */}
-        <button
-          onClick={onClose}
-          className="lg:hidden absolute top-20 right-4 text-white hover:bg-white/10 p-2 rounded-lg"
-        >
-          <X className="w-5 h-5" />
-        </button>
+       
+        <div className="h-16 flex items-center justify-between px-6 border-b border-white/10">
+          <Link to="/analytics" className="flex items-center">
+            <span className="text-xl font-bold text-white tracking-tight">Trellio-Lite</span>
+          </Link>
+          
+          
+          <button
+            onClick={onClose}
+            className="lg:hidden text-white hover:bg-white/10 p-2 rounded-lg transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
         <div className="p-4">
           <nav className="space-y-1">
