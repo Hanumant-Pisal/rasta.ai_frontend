@@ -4,6 +4,7 @@ import { updateTask } from '../redux/taskSlice';
 import { fetchProjectMembers } from '../redux/projectSlice';
 import { toast } from 'react-toastify';
 import { X } from 'lucide-react';
+import TaskComments from './TaskComments';
 
 const EditTaskModal = ({ isOpen, onClose, task }) => {
   const dispatch = useDispatch();
@@ -27,7 +28,7 @@ const EditTaskModal = ({ isOpen, onClose, task }) => {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Get project members
+  
   const project = projectsState.list?.find(p => p._id === task?.projectId) || projectsState.currentProject;
   const projectMembers = project?.members || [];
 
@@ -51,7 +52,7 @@ const EditTaskModal = ({ isOpen, onClose, task }) => {
     if (isOpen && task) {
       dispatch(fetchProjectMembers({ projectId: task.projectId, token }));
       
-      // Format date for datetime-local input
+      
       const formattedDate = task.dueDate 
         ? new Date(task.dueDate).toISOString().slice(0, 16)
         : '';
@@ -124,7 +125,7 @@ const EditTaskModal = ({ isOpen, onClose, task }) => {
       onClick={onClose}
     >
       <div 
-        className="bg-white rounded-lg w-full max-w-md max-h-[95vh] sm:max-h-[90vh] overflow-y-auto"
+        className="bg-white rounded-lg w-full max-w-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto"
         onClick={handleModalClick}
       >
         <div className="flex justify-between items-center border-b p-4">
@@ -248,6 +249,11 @@ const EditTaskModal = ({ isOpen, onClose, task }) => {
             </button>
           </div>
         </form>
+
+        
+        <div className="border-t p-6">
+          <TaskComments taskId={task._id} />
+        </div>
       </div>
     </div>
   );
